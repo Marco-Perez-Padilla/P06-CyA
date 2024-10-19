@@ -21,6 +21,7 @@
 **      24/09/2024 - Manejo de casos en donde el alfabeto no se corresponde a la cadena
 **      24/09/2024 - Adición de los métodos prefijos y sufijos 
 **      18/10/2024 - Deleción de los métodos prefijos y sufijos para eliminar dependencia de la clase Lenguaje
+**      19/10/2024 - Adición de constructor en base a un std::string
 **/
 
 #include <algorithm>
@@ -95,4 +96,14 @@ std::ostream& operator<<(std::ostream& os, const Chain& chains) {
     os << symbols[i];
   }
   return os;
+}
+
+/**
+ * @brief Constructor based on a string
+ * @param string
+ */
+Chain::Chain(const std::string& line) {
+  for (long unsigned int i {0}; i < line.size(); ++i) {
+    AddBack(Symbol(line[i]));
+  }
 }

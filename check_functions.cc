@@ -17,6 +17,7 @@
 ** Historial de revisiones:
 **      18/10/2024 - Creacion (primera version) del codigo
 **      18/10/2024 - Creación de funciones de validación de formatos y de ValidateNumber
+**      19/10/2024 - Adición de aclaración en Help. & como símbolo reservado a cadena vacía
 **/
 
 #include <regex>
@@ -106,6 +107,7 @@ void Help () {
               << "\n"
               << "input.fa:        Input file with extension fa. Codificates the information of the automaton such as:\n"
               << "                       Line 1: Alphabet simbols separated by one blank space.\n"
+              << "                                      - '&' cannot be part of alphabet. Reserved symbol for empty string.\n"
               << "                       Line 2: Total of states the automaton has got.\n"
               << "                       Line 3: Start state.\n"
               << "                       Line 4 and on: For each line, separated by one blank space:\n"
@@ -114,7 +116,7 @@ void Help () {
               << "                                      - Number of transitions the state has got. And for each transition:\n"
               << "                                               - Required symbol so the transition is executed.\n"
               << "                                               - Destiny state in the transition.\n"
-              << "input.txt:       Input file with extension txt. It has a string each line, that belongs to the alphabet.\n"
+              << "input.txt:       Input file with extension txt. It has a string belonging to the given alphabet in each line.\n"
               << "\n";
 }
 

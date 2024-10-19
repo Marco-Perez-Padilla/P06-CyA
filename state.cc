@@ -17,11 +17,33 @@
 
 ** Historial de revisiones:
 **      18/10/2024 - Creacion (primera version) del codigo
+**      19/10/2024 - Adición del método UploadTransition
+**      19/10/2024 - Sobrecarga del operador <<
 **/
 
 #include "state.h"
 
+/**
+ * @brief Adds a transition to an existant State. Increments its number of transitions.
+ * @param Symbol. Symbol that produces de transition.
+ * @param Int. Id of destiny transition.
+ */
 void State::AddTransition (Symbol trans_symbol, long unsigned int trans__state_id) {
   ++number_transitions_;
   transitions_.insert(std::pair<Symbol, long unsigned int> (trans_symbol, trans__state_id));
+}
+
+/**
+ * @brief Adds a transition to an State. Doesn't increment its number of transitions.
+ * @param Symbol. Symbol that produces de transition.
+ * @param Int. Id of destiny transition.
+ */
+void State::UploadTransition (Symbol trans_symbol, long unsigned int trans__state_id) {
+  transitions_.insert(std::pair<Symbol, long unsigned int> (trans_symbol, trans__state_id));
+}
+
+std::ostream& operator<<(std::ostream& os, const State& state) {
+  os << "State " << state.getId() << ":" << std::endl;
+  os << "Acceptation state: " << !state.getNonAcceptation() << std::endl;
+  os << "Number of states: " << state.getNumberTransitions() << std::endl;
 }

@@ -4,7 +4,7 @@
 ** Grado en Ingenieria Informatica
 ** Asignatura: Computabilidad y Algoritmia
 ** Curso: 2º
-** Practica 2¡6: Autómatas Finitos
+** Practica 6: Autómatas Finitos
 ** Autor: Marco Pérez Padilla
 ** Correo: alu0101469348@ull.edu.es
 ** Fecha: 20/09/2024
@@ -20,6 +20,7 @@
 **      23/09/2024 - Adición del método empty
 **      24/09/2024 - Adición de los métodos prefijos y sufijos 
 **      18/10/2024 - Deleción de los métodos prefijos y sufijos para eliminar dependencia de la clase Lenguaje
+**      19/10/2024 - Adición de constructor en base a un std::string
 **/
 
 #ifndef CHAIN_H
@@ -37,6 +38,7 @@ class Chain {
   //Constructors
   Chain() = default;
   Chain(const std::vector<Symbol>& chain) : chain_(chain) {}   
+  Chain(const std::string& line);
   //Getter
   const std::vector<Symbol>& getChain () const {return chain_;} 
   //Functions for chain class

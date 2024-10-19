@@ -17,6 +17,7 @@
 
 ** Historial de revisiones:
 **      18/10/2024 - Creacion (primera version) del codigo
+**      19/10/2024 - Finalización del código fuente
 **/
 
 #include <iostream>
@@ -27,4 +28,6 @@
 int main (int argc, char* argv[]) {
   ValidateCommand(argc, argv);
   NFA nfa(argv[1]);
+  nfa.SimulateAutomaton(argv[2]);
+  return 0;
 }

@@ -17,6 +17,8 @@
 
 ** Historial de revisiones:
 **      18/10/2024 - Creacion (primera version) del codigo
+**      19/10/2024 - Adición del método UploadTransition
+**      19/10/2024 - Sobrecarga del operador <<
 **/
 
 #ifndef STATE_H
@@ -35,15 +37,20 @@ class State {
   long unsigned int number_transitions_;
   std::multimap<Symbol, long unsigned int> transitions_;
  public:
+  //Constructors
   State () = default;
   State (long unsigned int Id, bool non_acceptation, long unsigned int num_trans) : Id_ (Id), non_acceptation_ (non_acceptation), number_transitions_ (num_trans), transitions_() {}
 
-  const long unsigned int getId () const {return Id_;}
-  const bool getNonAcceptation () const {return non_acceptation_;}
-  const long unsigned int getNumberTransitions () const {return number_transitions_;}
-  const std::multimap<Symbol, long unsigned int> getTransitions () const {return transitions_;}
+  //Getters
+  const long unsigned int& getId () const {return Id_;}
+  const bool& getNonAcceptation () const {return non_acceptation_;}
+  const long unsigned int& getNumberTransitions () const {return number_transitions_;}
+  const std::multimap<Symbol, long unsigned int>& getTransitions () const {return transitions_;}
 
+  //Method to add transitions. Must be careful with their uses
   void AddTransition (Symbol trans_symbol, long unsigned int trans_state);
+  void UploadTransition (Symbol trans_symbol, long unsigned int trans_state);
 };
+std::ostream& operator<<(std::ostream& os, const State& state);
 
 #endif
