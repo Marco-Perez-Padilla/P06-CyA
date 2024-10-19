@@ -13,7 +13,8 @@
 **      Contiene las declaraciones de la clase NFA
 **      
 ** Referencias:
-**      Enlaces de interes
+**      Enlaces de interes:
+**          https://www.geeksforgeeks.org/multimap-equal_range-in-c-stl/ 
 
 ** Historial de revisiones:
 **      18/10/2024 - Creacion (primera version) del codigo

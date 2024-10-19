@@ -14,6 +14,7 @@
 **      
 ** Referencias:
 **      Enlaces de interes
+**          https://www.geeksforgeeks.org/multimap-associative-containers-the-c-standard-template-library-stl/
 
 ** Historial de revisiones:
 **      18/10/2024 - Creacion (primera version) del codigo
@@ -42,8 +43,15 @@ void State::UploadTransition (Symbol trans_symbol, long unsigned int trans__stat
   transitions_.insert(std::pair<Symbol, long unsigned int> (trans_symbol, trans__state_id));
 }
 
+/**
+ * @brief Overload of operator << for State class
+ * @param ostream
+ * @param State
+ * @return ostream
+ */
 std::ostream& operator<<(std::ostream& os, const State& state) {
   os << "State " << state.getId() << ":" << std::endl;
   os << "Acceptation state: " << !state.getNonAcceptation() << std::endl;
   os << "Number of states: " << state.getNumberTransitions() << std::endl;
+  return os;
 }

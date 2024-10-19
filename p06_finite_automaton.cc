@@ -10,14 +10,16 @@
 ** Fecha: 18/10/2024
 
 ** Archivo p06_finite_automaton.cc: programa cliente.
-**      Contiene la funcion main del proyecto que usa las clases programa, comentario, variable, bucle, principal
-**      para analizar un codigo en c++ pasado por linea de comandos. Contiene así mismo las funciones de ayuda y validación.
+**      Contiene la funcion main del proyecto que usa las clases estado, NFA, cadena y símbolo para 
+**      crear un simulador de NFA's funcional en base a un fichero de entrada .fa y  otro .txt  que 
+**      que contienen la codificación de un NFA y una lista de cadenas, respectivamente.
+**
 ** Referencias:
 **      Enlaces de interes
 
 ** Historial de revisiones:
 **      18/10/2024 - Creacion (primera version) del codigo
-**      19/10/2024 - Finalización del código fuente
+**      19/10/2024 - Creación del simulador
 **/
 
 #include <iostream>

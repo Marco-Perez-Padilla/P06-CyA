@@ -13,7 +13,8 @@
 **      Contiene los métodos de la clase NFA
 **      
 ** Referencias:
-**      Enlaces de interes
+**      Enlaces de interes:
+**          https://www.geeksforgeeks.org/multimap-equal_range-in-c-stl/ 
 
 ** Historial de revisiones:
 **      18/10/2024 - Creacion (primera version) del codigo
@@ -187,6 +188,10 @@ std::vector<State> NFA::operator[](const long unsigned int id) const {
   }
 }
 
+/**
+ * @brief Simulates the behaviour of an NFA, accepting or rejecting input strings
+ * @param Input file
+ */
 void NFA::SimulateAutomaton (const std::string& file_txt) {
   std::ifstream input_txt(file_txt);
   if (!input_txt.is_open()) {
@@ -198,28 +203,35 @@ void NFA::SimulateAutomaton (const std::string& file_txt) {
   while (std::getline(input_txt, line)) {
     Chain input_chain (line);
     std::set<long unsigned int> current_states;    //Set for states NFA is in.
+    std::set<long unsigned int> accepted_epsilon_states;
     current_states.insert(getStart().getId());
-
-    //Treatment for & chains. Will be accepted if start acception state or if acception states are reached with &-transitions
 
     //Treatment for non & chains
     for (const Symbol& symbol : input_chain.getChain()) {   //For each symbol: 
       std::set <long unsigned int> border_states;           //Set for next accesible states from each symbol
+      std::set <long unsigned int> epsilon_border_states;
+
       for (long unsigned int id : current_states) {    //From each state of our set
         auto all_states = getStates().equal_range(id); //all_states.first has got first State coinciding with id. all_states.second the first one that doesn't coincidence
         for (auto identification = all_states.first; identification != all_states.second; ++identification) {   //For each id according to a same state
           const State& state = identification->second;   //Next state
           const std::multimap<Symbol, long unsigned int>& transitions = state.getTransitions(); //We get next state transitions
-          for (const std::pair<Symbol, long unsigned int>& transition : transitions) {   //For each transition in transitions
+          for (const std::pair<const Symbol, long unsigned int>& transition : transitions) {   //For each transition in transitions
             if (transition.first == symbol) {   //If symbol is a transition symbol
               border_states.insert(transition.second);   //We insert that next state in our border
+            }
+            if (transition.first == Symbol('&')) {
+              epsilon_border_states.insert(transition.second);
             }
           }
         }
       }
+
     //We get final states. To process them, they'll be current states, and we clear border states, liberating memory
     current_states = border_states;
+    current_states.insert(epsilon_border_states.begin(), epsilon_border_states.end());
     border_states.clear();
+    epsilon_border_states.clear();
     }
     //Flag to finish as soon as we find it is accepted
     bool accepted = false;
@@ -230,6 +242,15 @@ void NFA::SimulateAutomaton (const std::string& file_txt) {
         break;
       }
     }
+
+    for (long unsigned int id : accepted_epsilon_states) {
+      const State& state = getStates().find(id)->second; 
+      if (state.getNonAcceptation() == 1) {
+        accepted = true;
+        break;
+      }
+    }
+
     if (accepted) {
       std::cout << input_chain << " --- Accepted" << std::endl; 
     } else {
