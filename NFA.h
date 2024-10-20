@@ -20,6 +20,8 @@
 **      18/10/2024 - Creacion (primera version) del codigo
 **      19/10/2024 - Adición de métodos de adición de estados, y operador []
 **      19/10/2024 - Adición de método simulador de Autómatas
+**      20/10/2024 - Adición de método para calcular la épsilon-clausura
+**      21/10/2024 - Mayor manejo de errores 
 **/
 
 #ifndef NFA_H
@@ -48,7 +50,7 @@ class NFA {
 
   //Methods
   void AddState (const State& state) {states_.insert({state.getId(), state});} //Adds states to the NFA.
-  void ProcessAutomaton (const std::string& file_fa); //Reads the input file.
+  bool ProcessAutomaton (const std::string& file_fa); //Reads the input file.
   void SimulateAutomaton (const std::string& file_txt);
   std::set<long unsigned int> EpsilonClosure(const std::set<long unsigned int>& current_states);
 

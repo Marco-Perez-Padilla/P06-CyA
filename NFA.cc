@@ -20,6 +20,8 @@
 **      18/10/2024 - Creacion (primera version) del codigo
 **      19/10/2024 - Adición de operador []
 **      19/10/2024 - Adición de método simulador de Autómatas
+**      20/10/2024 - Adición de método para calcular la épsilon-clausura
+**      21/10/2024 - Mayor manejo de errores 
 **/
 
 #include <sstream>
@@ -43,11 +45,11 @@ NFA::NFA (const std::string& file_fa){
  * @brief Reads given file and processes the NFA
  * @param Input file
  */
-void NFA::ProcessAutomaton (const std::string& file_fa) {
+bool NFA::ProcessAutomaton (const std::string& file_fa) {
   std::ifstream input_fa(file_fa);
   if (!input_fa.is_open()) {
     std::cerr << "Error: File couldn't be opened " << file_fa << ". Try \"./p06_automata_simulator --help\" for further information " << std::endl;
-    return;
+    return false;
   }
 
   std::string line;
@@ -72,7 +74,7 @@ void NFA::ProcessAutomaton (const std::string& file_fa) {
   //Checking the alphabet
   if (alphabet.Empty()) {
     std::cerr << "Incorrect input format in line 1: Alphabet cannot be empty." << std::endl;
-    return;
+    return false;
   }
 
   //Reading number of total states
@@ -82,12 +84,12 @@ void NFA::ProcessAutomaton (const std::string& file_fa) {
       if (states <= 0) {
         std::cerr << "Error: Number of states cannot be negative nor 0.\n"
                   << "Try './p06_automata_simulator --help' for further information\n";
-        return;
+        return false;
       }
     } else {
       std::cerr << "Error: Incorrect format in total state numbers line.\n"
                 << "Try './p06_automata_simulator --help' for further information\n";
-      return; 
+      return false; 
     }
   }
 
@@ -98,19 +100,20 @@ void NFA::ProcessAutomaton (const std::string& file_fa) {
       if (start < 0) {
         std::cerr << "Error: Start state cannot be negative.\n"
                   << "Try './p06_automata_simulator --help' for further information\n";
-        return;
+        return false;
       }
     } else if (start >= states) {
       std::cerr << "Error: Start state must be between range: [0-" << states - 1 << "] "<< std::endl;
-      return;
+      return false;
     } else {
       std::cerr << "Error: Incorrect format in Start state line.\n"
                 << "Try './p06_automata_simulator --help' for further information\n";
-      return; 
+      return false; 
     }
   }
 
   long unsigned int iteration_counter {3};
+  bool start_initialitation = false;
 
   //Reading each state
   for (long unsigned int i {0}; i < states; ++i) {
@@ -121,11 +124,11 @@ void NFA::ProcessAutomaton (const std::string& file_fa) {
       //Checks range errors in id.
       if (id >= states) {
         std::cerr << "Error in line " << iteration_counter + 1 <<  ": Current state must be between range: [0-" << states - 1 << "] "<< std::endl;
-        return;
+        return false;
       }
 
       State state(id, non_accept, num_transitions);
-      
+
       //Procceses each transition
       for (long unsigned int j {0}; j < state.getNumberTransitions(); ++j) {
         char symbol;
@@ -136,13 +139,13 @@ void NFA::ProcessAutomaton (const std::string& file_fa) {
           //Deals with errors in symbols
           if (!alphabet.Find(trans_symbol) && trans_symbol.getSymbol() != '&') {
             std::cerr << "Fatal error in line "<< iteration_counter + 1 << ": Transition symbol does not belong to described alphabet." << std::endl;
-            return;
+            return false;
           }
 
           //Deals with range errors
           if (dest_state >= states) {
             std::cerr << "Error in line " << iteration_counter + 1 <<  ": Destiny state must be between range: [0-" << states - 1 << "] "<< std::endl;
-            return;
+            return false;
           }
 
           //Adds transitions to the state
@@ -152,17 +155,28 @@ void NFA::ProcessAutomaton (const std::string& file_fa) {
         } else {
           std::cerr << "Error in line " << iteration_counter + 1 << ": Incorrect format in transitions.\n"
                     << "Try './p06_automata_simulator --help' for further information\n";
-          return;
+          return false;
         }
       }
 
       ++iteration_counter;
       if (start == id) {
         start_ = state;
+        start_initialitation = true;
       } 
       AddState(state);
     }
   }
+
+  if (start_initialitation == false) {
+    std::cerr << "Error: There is no start state" << std::endl;
+    return false;
+  }
+  if (iteration_counter - 3 != states) {
+    std::cerr << "Error: Number of states do not match number of states described" << std::endl;
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -203,56 +217,70 @@ void NFA::SimulateAutomaton (const std::string& file_txt) {
   }
 
   std::string line;
-
+  long unsigned int iteration_counter {1};
+  
   while (std::getline(input_txt, line)) {
     Chain input_chain (line);
     std::set<long unsigned int> current_states;    //Set for states NFA is in.
     current_states.insert(getStart().getId());
-
     current_states = EpsilonClosure(current_states); //Doing epsilon closure
 
-    for (const Symbol& symbol : input_chain.getChain()) {   //For each symbol:
-      std::set <long unsigned int> border_states;           //Set for next accesible states from each symbol
+    if (!input_chain.Empty()) {
+      bool multiple_string = false;
+      for (const Symbol& symbol : input_chain.getChain()) {   //For each symbol:
+        if (symbol.getSymbol() == ' ') {
+          std::cerr << "Error in line " << iteration_counter << ": More than one string in same line" << std::endl;
+          multiple_string = true;
+          break;
+        }
+        std::set <long unsigned int> border_states;           //Set for next accesible states from each symbol
 
-      for (long unsigned int id : current_states) {    //From each state of our set
-        auto all_states = getStates().equal_range(id); //all_states.first has got first State coinciding with id. all_states.second the first one that doesn't coincidence
-        for (auto identification = all_states.first; identification != all_states.second; ++identification) {   //For each id according to a same state
-          const State& state = identification->second;   //Next state
-          const std::multimap<Symbol, long unsigned int>& transitions = state.getTransitions(); //We get next state transitions
-          for (const std::pair<const Symbol, long unsigned int>& transition : transitions) {   //For each transition in transitions
-            if (transition.first == symbol) {   //If symbol is a transition symbol
-              border_states.insert(transition.second);   //We insert that next state in our border
+        for (long unsigned int id : current_states) {    //From each state of our set
+          auto all_states = getStates().equal_range(id); //all_states.first has got first State coinciding with id. all_states.second the first one that doesn't coincidence
+          for (auto identification = all_states.first; identification != all_states.second; ++identification) {   //For each id according to a same state
+            const State& state = identification->second;   //Next state
+            const std::multimap<Symbol, long unsigned int>& transitions = state.getTransitions(); //We get next state transitions
+            for (const std::pair<const Symbol, long unsigned int>& transition : transitions) {   //For each transition in transitions
+              if (transition.first == symbol) {   //If symbol is a transition symbol
+                border_states.insert(transition.second);   //We insert that next state in our border
+              }
             }
           }
         }
+        //We get final states. To process them, they'll be current states, and we clear border states, liberating memory
+        current_states = border_states;
+        border_states.clear();
       }
 
-      //We get final states. To process them, they'll be current states, and we clear border states, liberating memory
-      current_states = border_states;
-      border_states.clear();
-    }
+      if (multiple_string == true) {
+        ++iteration_counter;
+        continue;
+      }
 
-    //Flag to finish as soon as we find it is accepted
-    bool accepted = false;
-    for (long unsigned int id : current_states) {
-      const State& state = getStates().find(id)->second; //We have unique states this time
-      if (state.getNonAcceptation() == 1) {   //If any of the states in our set is acceptation state, we accept the chain
+      //Flag to finish as soon as we find it is accepted
+      bool accepted = false;
+      for (long unsigned int id : current_states) {
+        const State& state = getStates().find(id)->second; //We have unique states this time
+        if (state.getNonAcceptation() == 1) {   //If any of the states in our set is acceptation state, we accept the chain
+          accepted = true;
+          break;
+        }
+      }
+
+      if (input_chain.getChain()[0].getSymbol() == '&' && getStart().getNonAcceptation() == 1) { //Special case
         accepted = true;
-        break;
       }
-    }
-
-    if (input_chain.getChain()[0].getSymbol() == '&' && getStart().getNonAcceptation() == 1) { //Special case
-      accepted = true;
-    }
-    
-    if (accepted) {
-      std::cout << input_chain << " --- Accepted" << std::endl; 
+      
+      if (accepted) {
+        std::cout << input_chain << " --- Accepted" << std::endl; 
+      } else {
+        std::cout << input_chain << " --- Rejected" << std::endl; 
+      }
     } else {
-      std::cout << input_chain << " --- Rejected" << std::endl; 
+      std::cerr << "Error in line " << iteration_counter << ": There is no string" << std::endl;
     }
+    ++iteration_counter;
   }
-
   return;
 }
 
