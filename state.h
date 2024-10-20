@@ -33,10 +33,10 @@
 
 class State {
  private:
-  long unsigned int Id_;
-  bool non_acceptation_;
-  long unsigned int number_transitions_;
-  std::multimap<Symbol, long unsigned int> transitions_;
+  long unsigned int Id_;  //Id of the states. Used in constructor, to start simulator and in AddState
+  bool non_acceptation_;  //Checks if state is acceptation state or not. Used in simulator
+  long unsigned int number_transitions_;  //Number of transitions, used in processing the automaton and in constructor as part of unique identification of the states
+  std::multimap<Symbol, long unsigned int> transitions_; //Allows a state to have more than one transition with same symbol and stores all transitions. Used processing the automaton
  public:
   //Constructors
   State () = default;

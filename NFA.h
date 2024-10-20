@@ -35,16 +35,14 @@
 
 class NFA {
  private:
-  Alphabet alphabet_;
-  State start_;
-  std::multimap<long unsigned int, State> states_;
+  State start_;   //start state. Used to start the simulation.
+  std::multimap<long unsigned int, State> states_;  //Container for all the states of the NFA. Used to iterate in the simulation
   
  public:
   //Constructor. Requires a correct input file
   NFA (const std::string& input_fa);
 
   //Getters
-  const Alphabet& GetAlphabet () const {return alphabet_;}
   const State& getStart () const {return start_;}
   const std::multimap<long unsigned int, State>& getStates () const {return states_;}
 
@@ -52,6 +50,7 @@ class NFA {
   void AddState (const State& state) {states_.insert({state.getId(), state});} //Adds states to the NFA.
   void ProcessAutomaton (const std::string& file_fa); //Reads the input file.
   void SimulateAutomaton (const std::string& file_txt);
+  std::set<long unsigned int> EpsilonClosure(const std::set<long unsigned int>& current_states);
 
   //Operators
   std::vector<State> operator[](const long unsigned int id) const;

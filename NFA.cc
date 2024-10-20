@@ -101,9 +101,9 @@ void NFA::ProcessAutomaton (const std::string& file_fa) {
         return;
       }
     } else if (start >= states) {
-        std::cerr << "Error: Start state must be between range: [0-" << states - 1 << "] "<< std::endl;
-        return;
-      } else {
+      std::cerr << "Error: Start state must be between range: [0-" << states - 1 << "] "<< std::endl;
+      return;
+    } else {
       std::cerr << "Error: Incorrect format in Start state line.\n"
                 << "Try './p06_automata_simulator --help' for further information\n";
       return; 
@@ -155,6 +155,7 @@ void NFA::ProcessAutomaton (const std::string& file_fa) {
           return;
         }
       }
+
       ++iteration_counter;
       if (start == id) {
         start_ = state;
@@ -171,15 +172,17 @@ void NFA::ProcessAutomaton (const std::string& file_fa) {
  */
 std::vector<State> NFA::operator[](const long unsigned int id) const {
   std::vector<State> results;
-  if (id < 0 || id >= states_.size()) {
-    std::cerr << "Error: Cannot access " << id << " state. It must be in range [0-" << states_.size() - 1 << "]" << std::endl;
+  if (id < 0 || id >= getStates().size()) {
+    std::cerr << "Error: Cannot access " << id << " state. It must be in range [0-" << getStates().size() - 1 << "]" << std::endl;
     exit (EXIT_FAILURE);
   }
-  for (const std::pair<long unsigned int, State> state : states_) {
+
+  for (const std::pair<long unsigned int, State> state : getStates()) {
     if (state.first == id) {
       results.push_back(state.second);
     }
   }
+
   if (!results.empty()) {
     return results;
   } else {
@@ -200,16 +203,16 @@ void NFA::SimulateAutomaton (const std::string& file_txt) {
   }
 
   std::string line;
+
   while (std::getline(input_txt, line)) {
     Chain input_chain (line);
     std::set<long unsigned int> current_states;    //Set for states NFA is in.
-    std::set<long unsigned int> accepted_epsilon_states;
     current_states.insert(getStart().getId());
 
-    //Treatment for non & chains
-    for (const Symbol& symbol : input_chain.getChain()) {   //For each symbol: 
+    current_states = EpsilonClosure(current_states); //Doing epsilon closure
+
+    for (const Symbol& symbol : input_chain.getChain()) {   //For each symbol:
       std::set <long unsigned int> border_states;           //Set for next accesible states from each symbol
-      std::set <long unsigned int> epsilon_border_states;
 
       for (long unsigned int id : current_states) {    //From each state of our set
         auto all_states = getStates().equal_range(id); //all_states.first has got first State coinciding with id. all_states.second the first one that doesn't coincidence
@@ -220,32 +223,20 @@ void NFA::SimulateAutomaton (const std::string& file_txt) {
             if (transition.first == symbol) {   //If symbol is a transition symbol
               border_states.insert(transition.second);   //We insert that next state in our border
             }
-            if (transition.first == Symbol('&')) {
-              epsilon_border_states.insert(transition.second);
-            }
           }
         }
       }
 
-    //We get final states. To process them, they'll be current states, and we clear border states, liberating memory
-    current_states = border_states;
-    current_states.insert(epsilon_border_states.begin(), epsilon_border_states.end());
-    border_states.clear();
-    epsilon_border_states.clear();
+      //We get final states. To process them, they'll be current states, and we clear border states, liberating memory
+      current_states = border_states;
+      border_states.clear();
     }
+
     //Flag to finish as soon as we find it is accepted
     bool accepted = false;
     for (long unsigned int id : current_states) {
       const State& state = getStates().find(id)->second; //We have unique states this time
       if (state.getNonAcceptation() == 1) {   //If any of the states in our set is acceptation state, we accept the chain
-        accepted = true;
-        break;
-      }
-    }
-
-    for (long unsigned int id : accepted_epsilon_states) {
-      const State& state = getStates().find(id)->second; 
-      if (state.getNonAcceptation() == 1) {
         accepted = true;
         break;
       }
@@ -257,5 +248,39 @@ void NFA::SimulateAutomaton (const std::string& file_txt) {
       std::cout << input_chain << " --- Rejected" << std::endl; 
     }
   }
+
   return;
+}
+
+/**
+ * @brief Method that calculates epsilon closure from a start state
+ * @param Set which stores start state and is modified to include epsilon closure
+ * @return Set with epsilon closure
+ */
+std::set<long unsigned int> NFA::EpsilonClosure(const std::set<long unsigned int>& current_states) {
+  std::set<long unsigned int> epsilon_closure = current_states;
+  //Flag to iterate until there is no available next state
+  bool found = true;
+  while (found) {
+    found = false;
+    std::set<long unsigned int> epsilon_iterations = epsilon_closure; 
+
+    for (const long unsigned int id : epsilon_iterations) {
+      auto all_states = getStates().equal_range(id); //all_states.first has got first State coinciding with id. all_states.second the first one that doesn't coincidence
+      for (auto identification = all_states.first; identification != all_states.second; ++identification) {   //For each id according to a same state
+        const State& state = identification->second;   //Next state
+        const std::multimap<Symbol, long unsigned int>& transitions = state.getTransitions(); //We get next state transitions
+        for (const std::pair<const Symbol, long unsigned int>& transition : transitions) {   //For each transition in transitions
+          if (transition.first.getSymbol() == '&') {   //If symbol is &
+            long unsigned int next = transition.second;   //We insert that next state in our border
+            if (epsilon_closure.find(next) == epsilon_closure.end()) {  //If not found in epsilon closure, then add and continue the loop
+              epsilon_closure.insert(next);
+              found = true;
+            }
+          }
+        }
+      }
+    }
+  }
+  return epsilon_closure;
 }

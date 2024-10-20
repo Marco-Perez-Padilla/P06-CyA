@@ -31,7 +31,7 @@
 
 class Alphabet {
  private:
-  std::set<Symbol>symbols_;
+  std::set<Symbol>symbols_; 
 
  public:
   Alphabet() = default;
