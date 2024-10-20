@@ -242,6 +242,10 @@ void NFA::SimulateAutomaton (const std::string& file_txt) {
       }
     }
 
+    if (input_chain.getChain()[0].getSymbol() == '&' && getStart().getNonAcceptation() == 1) { //Special case
+      accepted = true;
+    }
+    
     if (accepted) {
       std::cout << input_chain << " --- Accepted" << std::endl; 
     } else {
